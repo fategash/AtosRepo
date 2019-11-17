@@ -18,30 +18,15 @@ public class TransactionServiceImpl implements TransactionService{
 	@Override
 	public Transaction updateTransaction(Transaction transaction) {
 		int i = 0;
-		System.out.println("vamos a recorrer la BBDD");
 		Iterator<Transaction> iterator=transactionDatabase.iterator();
-//		for (Transaction t : transactionDatabase) {
-//			if (t.getReference()==transaction.getReference()){
-//	        	System.out.println("se mete en el if");
-//	        	transactionDatabase.remove(i);
-//	        	System.out.println("hace el remove");
-//	        	transactionDatabase.add(transaction);
-//	        	System.out.println("hace el add");
-//	        }
-//		}
 		boolean found = false;
 		while (found == false) {
-			System.out.println("se mete en el while");
 			Transaction element = null;
 			if (iterator.hasNext())
 				element=iterator.next();
-			System.out.println("hace el iterator.next");
 	        if (element.getReference()==transaction.getReference()){
-	        	System.out.println("se mete en el if");
 	        	transactionDatabase.remove(i);
-	        	System.out.println("hace el remove");
 	        	transactionDatabase.add(transaction);
-	        	System.out.println("hace el add");
 	        	found=true;
 	        }
 		    i++; 

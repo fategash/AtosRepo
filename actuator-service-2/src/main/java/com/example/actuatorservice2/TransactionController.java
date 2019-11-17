@@ -1,6 +1,8 @@
 package com.example.actuatorservice2;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -28,7 +30,6 @@ public class TransactionController {
     @ResponseBody
     public ArrayList<Transaction> searchTransactions() {
         return transactionService.getTransactions();
-		//return transactionDatabase;
     }
 	
 	@GetMapping("/status")
@@ -44,13 +45,22 @@ public class TransactionController {
     @ResponseBody
     public Transaction createTransaction(@RequestBody Map<String, String> body) {
 		
-		//Iterator<Transaction> iterator=transactionDatabase.iterator();
 		Long reference;
+		Date date = null;
+		
 		if (body.containsKey("reference"))
 			reference = Long.valueOf(body.get("reference"));
 		else
 			reference = counter.incrementAndGet();
 		String account_iban = body.get("account_iban");
+		if (body.containsKey("date"))
+			try {
+				date=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(body.get("date"));
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		else
+			date = new Date();
 		String a = body.get("amount");
 		BigDecimal amount = new BigDecimal(a);
 		amount.setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -58,26 +68,32 @@ public class TransactionController {
 		fee.setScale(2, BigDecimal.ROUND_HALF_UP);
 		Transaction newTransaction = new Transaction(reference,
 													account_iban,
-													new Date(),
+													date,
 													amount,
 													fee,
 													"Created transaction");
-		System.out.println("Veamos si la referencia es la misma");
-		if (body.containsKey("reference")){
-			System.out.println(body.get("reference"));
-			//int i=0;
-			//while (iterator.hasNext()) {
-				//Transaction element=iterator.next();
-		        //if (element.getReference()==newTransaction.getReference()){
-		    return transactionService.updateTransaction(newTransaction);
-		        	//transactionDatabase.set(i,newTransaction);
-		        //}
-			    //i++;   
-			//}
+		if(!balanceIsBelowZero(amount, fee, account_iban)) {
+			if (body.containsKey("reference")){
+			    return transactionService.updateTransaction(newTransaction);
+			}
+			else
+				 return transactionService.createTransaction(newTransaction);
 		}
 		else
-			 return transactionService.createTransaction(newTransaction);
-			//transactionDatabase.add(newTransaction);
-		//return newTransaction;
+			return newTransaction = new Transaction(reference,
+					account_iban,
+					date,
+					amount,
+					fee,
+					"Transaction failed: balance would be below zero");
+	}
+	
+	public boolean balanceIsBelowZero (BigDecimal amount, BigDecimal fee, String account_iban) {
+		/*
+		 * Here we assume we use another service like balanceService
+		 * which access the balance and assures if balance + amount + fee is below 
+		 * zero or not
+		 */
+		return false;
 	}
 }
