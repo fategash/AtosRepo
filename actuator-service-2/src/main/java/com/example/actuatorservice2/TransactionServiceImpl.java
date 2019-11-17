@@ -35,8 +35,18 @@ public class TransactionServiceImpl implements TransactionService{
 	}
 
 	@Override
-	public ArrayList<Transaction> getTransactions() {
-		return transactionDatabase;
+	public ArrayList<Transaction> getTransactions(String account) {
+		ArrayList<Transaction> resultList = new ArrayList<Transaction>();
+		Iterator<Transaction> iterator=transactionDatabase.iterator();
+		while (iterator.hasNext()) {
+			Transaction element = null;
+			if (iterator.hasNext())
+				element=iterator.next();
+	        if (element.getAccount_iban().equalsIgnoreCase(account)){
+	        	resultList.add(element);
+	        } 
+		}
+		return resultList;
 	}
 
 }

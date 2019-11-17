@@ -28,8 +28,8 @@ public class TransactionController {
 
 	@GetMapping("/search")
     @ResponseBody
-    public ArrayList<Transaction> searchTransactions() {
-        return transactionService.getTransactions();
+    public ArrayList<Transaction> searchTransactions(@RequestParam (name="account", required=true) String account_iban) {
+        return transactionService.getTransactions(account_iban);
     }
 	
 	@GetMapping("/status")
@@ -47,6 +47,8 @@ public class TransactionController {
 		
 		Long reference;
 		Date date = null;
+		BigDecimal fee = null;
+		String description;
 		
 		if (body.containsKey("reference"))
 			reference = Long.valueOf(body.get("reference"));
@@ -64,14 +66,17 @@ public class TransactionController {
 		String a = body.get("amount");
 		BigDecimal amount = new BigDecimal(a);
 		amount.setScale(2, BigDecimal.ROUND_HALF_UP);
-		BigDecimal fee = new BigDecimal(1);
+		if (body.containsKey("fee"))
+			fee= new BigDecimal((body.get("fee")));
+			else
+			fee = new BigDecimal(1);
 		fee.setScale(2, BigDecimal.ROUND_HALF_UP);
-		Transaction newTransaction = new Transaction(reference,
-													account_iban,
-													date,
-													amount,
-													fee,
-													"Created transaction");
+		if (body.containsKey("description"))
+			description= (body.get("description"));
+			else
+			description = "Created transaction";
+		Transaction newTransaction = new Transaction(reference,account_iban,date,amount,fee,description);
+		
 		if(!balanceIsBelowZero(amount, fee, account_iban)) {
 			if (body.containsKey("reference")){
 			    return transactionService.updateTransaction(newTransaction);
@@ -80,12 +85,12 @@ public class TransactionController {
 				 return transactionService.createTransaction(newTransaction);
 		}
 		else
-			return newTransaction = new Transaction(reference,
-					account_iban,
-					date,
-					amount,
-					fee,
-					"Transaction failed: balance would be below zero");
+			/*
+			 * Here we return the transaction object with an error message,
+			 * the proper way would be returning an error object and make this method
+			 * return either an error or a transaction object
+			 */
+			return newTransaction = new Transaction(reference,account_iban,date,amount,fee,"ERROR Transaction failed: balance would be below zero");
 	}
 	
 	public boolean balanceIsBelowZero (BigDecimal amount, BigDecimal fee, String account_iban) {

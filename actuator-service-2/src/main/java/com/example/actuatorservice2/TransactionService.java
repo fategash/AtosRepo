@@ -6,5 +6,5 @@ public interface TransactionService {
 	
 	 public abstract Transaction createTransaction(Transaction transaction);
 	 public abstract Transaction updateTransaction(Transaction transaction);
-	 public abstract ArrayList<Transaction> getTransactions();
+	 public abstract ArrayList<Transaction> getTransactions(String account);
 }
