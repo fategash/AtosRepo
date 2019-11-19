@@ -21,22 +21,11 @@ import com.example.actuatorservice2.Transaction;
 @Controller
 public class TransactionController {
 	
-	private final AtomicLong counter = new AtomicLong();
+	//private final AtomicLong counter = new AtomicLong();
 	
 	@Autowired
 	TransactionService transactionService;
 
-	@GetMapping("/search")
-    @ResponseBody
-    public ArrayList<Transaction> searchTransactions(@RequestParam (name="account", required=true) String account_iban) {
-        return transactionService.getTransactions(account_iban);
-    }
-	
-	@GetMapping("/status")
-    @ResponseBody
-    public Transaction status(@RequestParam(name="name", required=false, defaultValue="Stranger") String name) {
-        return new Transaction(counter.incrementAndGet(), "NUMEROIBANDECUENTA1111111",new Date(), new BigDecimal(3.18), new BigDecimal(1.18), "Status Transaction");
-    }
 	
 	/*This request should be a PUT as the reference could be optional
 	 * That means that the transaction on the payload could be one that already exists on the system
@@ -44,61 +33,29 @@ public class TransactionController {
 	@RequestMapping(value = "create", method = RequestMethod.POST)
     @ResponseBody
     public Transaction createTransaction(@RequestBody Map<String, String> body) {
+
+		Transaction newTransaction = new Transaction(body);
 		
-		Long reference;
-		Date date = null;
-		BigDecimal fee = null;
-		String description;
-		
-		if (body.containsKey("reference"))
-			reference = Long.valueOf(body.get("reference"));
-		else
-			reference = counter.incrementAndGet();
-		String account_iban = body.get("account_iban");
-		if (body.containsKey("date"))
-			try {
-				date=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(body.get("date"));
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-		else
-			date = new Date();
-		String a = body.get("amount");
-		BigDecimal amount = new BigDecimal(a);
-		amount.setScale(2, BigDecimal.ROUND_HALF_UP);
-		if (body.containsKey("fee"))
-			fee= new BigDecimal((body.get("fee")));
-			else
-			fee = new BigDecimal(1);
-		fee.setScale(2, BigDecimal.ROUND_HALF_UP);
-		if (body.containsKey("description"))
-			description= (body.get("description"));
-			else
-			description = "Created transaction";
-		Transaction newTransaction = new Transaction(reference,account_iban,date,amount,fee,description);
-		
-		if(!balanceIsBelowZero(amount, fee, account_iban)) {
 			if (body.containsKey("reference")){
 			    return transactionService.updateTransaction(newTransaction);
 			}
 			else
 				 return transactionService.createTransaction(newTransaction);
-		}
-		else
-			/*
-			 * Here we return the transaction object with an error message,
-			 * the proper way would be returning an error object and make this method
-			 * return either an error or a transaction object
-			 */
-			return newTransaction = new Transaction(reference,account_iban,date,amount,fee,"ERROR Transaction failed: balance would be below zero");
+
 	}
 	
-	public boolean balanceIsBelowZero (BigDecimal amount, BigDecimal fee, String account_iban) {
-		/*
-		 * Here we assume we use another service like balanceService
-		 * which access the balance and assures if balance + amount + fee is below 
-		 * zero or not
-		 */
-		return false;
-	}
+	@GetMapping("/search")
+    @ResponseBody
+    public ArrayList<Transaction> searchTransactions(@RequestParam (name="account", required=true) String account_iban) {
+        return transactionService.getTransactions(account_iban);
+    }
+	
+//	@GetMapping("/status")
+//    @ResponseBody
+//    public Transaction status() {
+//        return new Transaction();
+//    }
+	
+	
+
 }
